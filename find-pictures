@@ -1,0 +1,41 @@
+#!/usr/bin/python
+
+from subprocess import Popen, PIPE
+from shlex import split
+from os.path import dirname, basename
+
+file_extensions = ['SVG', 'JPG', 'JPEG', 'GIF', 'PNG', 'TIF', 'TIFF', 'TGA', 'BMP', 'PCX', 'PPM', 'PGM', 'PBM', 'PNM', 'PFM', 'XCF', 'PSD', 'PSP']
+
+files = []
+for ext in file_extensions:
+	files += Popen(split('find . -iname "*.'+ext+'"'), stdout=PIPE).communicate()[0].strip().split('\n')
+
+folders = {}
+if len(files) > 0:
+	sfiles = sorted(files)
+	last_folder = ''
+	for f in sfiles:
+		if f != '':
+			folder = dirname(f)
+			if folder != last_folder:
+				folders[folder] = []
+				last_folder = folder
+			folders[folder].append(basename(f))
+
+f = open('pictures.html', 'w')
+f.write("""<html>
+
+<body>
+""")
+
+for folder in sorted(folders.keys()):
+	f.write("<b>"+folder+"<br/>\n")
+	for img in sorted(folders[folder]):
+		f.write('<img src="'+folder+'/'+img+'" style="max-width:150px; max-height:150px;" />\n')
+	f.write("<br/>")
+
+f.write("""	</table>
+</body>
+
+</html>""")
+f.close()
